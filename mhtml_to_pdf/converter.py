@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import tempfile
-import shutil
 import base64
 import os
 import re
+import shutil
 import sys
+import tempfile
 from email.parser import BytesParser
 from email.policy import default
 
@@ -35,31 +35,24 @@ def extract_html_from_mhtml(mhtml_content):
             return part.get_payload(decode=True)
 
 
-def extract_images_from_mhtml(mhtml_content):
-    images = {}
+def extract_images_from_mhtml(mhtml_content, output_dir):
+    image_names = []
     parser = BytesParser(policy=default)
     msg = parser.parsebytes(mhtml_content)
 
-    for part in msg.walk():
-        if (
-            part.get_content_type() == "application/octet-stream"
-            and part["Content-Transfer-Encoding"] == "base64"
-        ):
-            image_name = part["Content-Location"].split("fileName=")[1]
-            image_data = base64.b64decode(part.get_payload())
-            images[image_name] = image_data
-
-    return images
-
-
-def save_images(images, output_dir):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    for image_name, image_data in images.items():
-        image_path = os.path.join(output_dir, image_name)
-        with open(image_path, "wb") as image_file:
-            image_file.write(image_data)
+    for part in msg.walk():
+        if part.get_content_type() == "application/octet-stream" and part["Content-Transfer-Encoding"] == "base64":
+            image_name = part["Content-Location"].split("fileName=")[1]
+            image_data = base64.b64decode(part.get_payload())
+            image_names.append(image_name)
+            image_path = os.path.join(output_dir, image_name)
+            with open(image_path, "wb") as image_file:
+                image_file.write(image_data)
+
+    return image_names
 
 
 def convert_to_pdf(pages, output_pdf_path):
@@ -67,9 +60,7 @@ def convert_to_pdf(pages, output_pdf_path):
     for page_image in pages:
         try:
             c.setPageSize((page_image.width, page_image.height))
-            c.drawInlineImage(
-                page_image, 0, 0, width=page_image.width, height=page_image.height
-            )
+            c.drawInlineImage(page_image, 0, 0, width=page_image.width, height=page_image.height)
             c.showPage()
         except Exception as e:
             print(f"Error while converting page to PDF: {e}")
@@ -130,9 +121,7 @@ def parse_page_components(html_content, image_names, image_temp_directory):
     soup = BeautifulSoup(html_content, "html.parser")
     pages = soup.find_all("div", class_="page")
     opened_images = {
-        image_name: Image.open(os.path.join(image_temp_directory, image_name)).convert(
-            "RGBA"
-        )
+        image_name: Image.open(os.path.join(image_temp_directory, image_name)).convert("RGBA")
         for image_name in image_names
     }
     page_images = [create_page_image(page, opened_images) for page in pages]
@@ -148,11 +137,8 @@ def generate_output_filename(origin_file_name):
 def convert_mhtml_to_pdf(mhtml_path, output_pdf_path, image_temp_directory):
     mhtml_content = read_mhtml_content(mhtml_path)
     html_content = extract_html_from_mhtml(mhtml_content)
-    images = extract_images_from_mhtml(mhtml_content)
-    save_images(images, image_temp_directory)
-    pages = parse_page_components(
-        html_content, [image_name for image_name in images], image_temp_directory
-    )
+    image_names = extract_images_from_mhtml(mhtml_content,image_temp_directory)
+    pages = parse_page_components(html_content,image_names, image_temp_directory)
     convert_to_pdf(pages, output_pdf_path)
 
 
@@ -166,9 +152,7 @@ def parse_arguments():
         formatter_class=argparse.RawDescriptionHelpFormatter,  # 保持 epilog 文本格式
     )
 
-    parser.add_argument(
-        "-m", "--mhtml", required=True, help="The path to the input MHTML file."
-    )
+    parser.add_argument("-m", "--mhtml", required=True, help="The path to the input MHTML file.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
         "-d",
@@ -181,12 +165,8 @@ def parse_arguments():
         help="Specify the PDF file name (used with --output-dir).",
     )
     group.add_argument("-o", "--output-file", help="Specifies the PDF file name to use")
-    parser.add_argument(
-        "-i", action="store_true", help="Prompt before every overwrite."
-    )
-    parser.add_argument(
-        "-y", action="store_true", help="Automatically answer yes for all questions."
-    )
+    parser.add_argument("-i", action="store_true", help="Prompt before every overwrite.")
+    parser.add_argument("-y", action="store_true", help="Automatically answer yes for all questions.")
 
     args = parser.parse_args()
 
@@ -212,9 +192,7 @@ def main():
         output_path = os.path.dirname(output_pdf_path)
     elif args.output_dir:
         output_path = os.path.abspath(args.output_dir)
-        pdf_file_name = (
-            args.filename if args.filename else generate_output_filename(orig_mhtml)
-        )
+        pdf_file_name = args.filename if args.filename else generate_output_filename(orig_mhtml)
         output_pdf_path = os.path.join(output_path, pdf_file_name)
 
     if not os.path.exists(output_path):
@@ -226,9 +204,7 @@ def main():
             print(f"{output_pdf_path} is a directory.")
             sys.exit(1)
         if args.i or not args.y:
-            overwrite = input(
-                f"File {output_pdf_path} already exists, do you want to overwrite it？(y/n): "
-            )
+            overwrite = input(f"File {output_pdf_path} already exists, do you want to overwrite it？(y/n): ")
             if overwrite.lower() != "y":
                 print("Operation cancelled.")
                 exit(0)

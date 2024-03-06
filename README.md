@@ -13,7 +13,7 @@ export_on_save:
 
 # gbt-mhtml2pdf
 
-将[国家标准全文公开系统](https://openstd.samr.gov.cn/bzgk/gb/index)公布的GB/T文档保存的mhtml文件转换为pdf。
+将[国家标准全文公开系统](https://openstd.samr.gov.cn/bzgk/gb/index)公布的GB/T文档保存为mhtml文件，使用此工具可转换为pdf。
 
 ## 安装
 
