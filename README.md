@@ -1,12 +1,38 @@
+---
+html:
+    embed_local_images: true
+    embed_svg: true
+    offline: true
+    toc: true
+
+print_background: false
+
+export_on_save:
+    html: true
+---
+
 # gbt-mhtml2pdf
 
-将https://openstd.samr.gov.cn/bzgk/gb/index公布的GB/T文档保存的mhtml文件转换为pdf。
+将[国家标准全文公开系统](https://openstd.samr.gov.cn/bzgk/gb/index)公布的GB/T文档保存的mhtml文件转换为pdf。
 
-## mhtml文件格式说明
+## 安装
 
-1. 你应该能理解mhtml文件的构成，并正确解析html中的元素；
-2. 标签如“<div id=3D"0”开头的，将指示每一个页，第一页的编号是0，第二页的编号是1，依此类推，第11页对应的标签开头是““<div id=3D"12"”；mhtml文件中包含多少页，需要提供代码进行分析；
-3. 每一个页面指示标签的style属性中定义了页面的宽度和高度，如width: 1190px; height: 1680px；理论上，同一个mhtml文件中的所有页面的宽度和高度是一样的；如果发现有不一致大小的页面，在转换过程中需要打印警告，除非这种尺寸不一致影响你的工作流程，否则不要终止转换；
-4. 每一个页面指示标签的内容，查找以“<span class=3D"pdfImg-”开头的行，这些行规定了页面的构成部件，如<span class=3D"pdfImg-1-4"，意思是，这张图片在本页的位置是第1列第4行；正常的，一个页面的构成是从pdfImg-1-0到pdfImg-8-9，共计80个部件；如果在一个页面div中，缺少某个组件，在这个缺失的地方，使用一个同等大小的空白图片来占位即可；
-5. 每一个组件图片的来源：
-6. 每一个组件图片的大小：在每个“<span class=3D"pdfImg-”标签中，有一个style属性，其中的background-position包含两个数值，如0px 0px，表示这个图片是从大图片的(0px,0px)坐标点裁剪的，这个坐标点位于大图片的坐上顶点，其宽度为（从左到右）119px，高度为（从上到下）168px，每一个页面中，第一个图片，即pdfImg-1-0的坐标点是(119px,0px)，最后一个图片的坐标点是(952px,1512px)；
+使用 python3 编译安装。
+
+```bash
+python3 setup.py install
+```
+
+如果仅给当前用户安装，请执行：
+
+```bash
+python3 setup.py install --user
+```
+
+## 使用方法
+
+```bash
+mhtml-to-pdf -m /path/to/gbt-mhtml.mhtml -o /path/to/gbt-mhtml.pdf
+mhtml-to-pdf -m /path/to/gbt-mhtml.mhtml -d /path/to/ # 输出 /path/to/gbt-mhtml.pdf
+mhtml-to-pdf -m /path/to/gbt-mhtml.mhtml -d /path/to/ -n newfile.pdf # 输出 /path/to/newfile.pdf
+```
