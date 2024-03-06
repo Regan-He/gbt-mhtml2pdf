@@ -201,18 +201,19 @@ def parse_arguments():
 
 def main():
     args = parse_arguments()
-    if not os.path.isfile(args.mhtml):
-        print(f"File {args.mhtml} does not exist.")
+    orig_mhtml = os.path.abspath(args.mhtml)
+    if not os.path.isfile(orig_mhtml):
+        print(f"File {orig_mhtml} does not exist.")
         sys.exit(1)
 
     output_path = ""
     if args.output_file:
-        output_pdf_path = args.output_file
+        output_pdf_path = os.path.abspath(args.output_file)
         output_path = os.path.dirname(output_pdf_path)
     elif args.output_dir:
-        output_path = args.output_dir
+        output_path = os.path.abspath(args.output_dir)
         pdf_file_name = (
-            args.filename if args.filename else generate_output_filename(args.mhtml)
+            args.filename if args.filename else generate_output_filename(orig_mhtml)
         )
         output_pdf_path = os.path.join(output_path, pdf_file_name)
 
@@ -233,14 +234,14 @@ def main():
                 exit(0)
 
     if args.i or not args.y:
-        continue_answer = input(f"Convert {args.mhtml} to {output_pdf_path}? (y/n): ")
+        continue_answer = input(f"Convert {orig_mhtml} to {output_pdf_path}? (y/n): ")
         if continue_answer.lower() != "y":
             print("Operation cancelled.")
             exit(0)
 
     image_temp_directory = tempfile.mkdtemp()
     try:
-        convert_mhtml_to_pdf(args.mhtml, output_pdf_path, image_temp_directory)
+        convert_mhtml_to_pdf(orig_mhtml, output_pdf_path, image_temp_directory)
     finally:
         shutil.rmtree(image_temp_directory)
 
