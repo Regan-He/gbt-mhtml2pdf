@@ -137,8 +137,8 @@ def generate_output_filename(origin_file_name):
 def convert_mhtml_to_pdf(mhtml_path, output_pdf_path, image_temp_directory):
     mhtml_content = read_mhtml_content(mhtml_path)
     html_content = extract_html_from_mhtml(mhtml_content)
-    image_names = extract_images_from_mhtml(mhtml_content,image_temp_directory)
-    pages = parse_page_components(html_content,image_names, image_temp_directory)
+    image_names = extract_images_from_mhtml(mhtml_content, image_temp_directory)
+    pages = parse_page_components(html_content, image_names, image_temp_directory)
     convert_to_pdf(pages, output_pdf_path)
 
 
