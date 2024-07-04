@@ -98,6 +98,9 @@ def create_page_image(page, opened_images):
 
         span_style = span["style"]
         bg_image_url, crop_x, crop_y = extract_image_info(span_style)
+        if not bg_image_url:
+            continue
+
         image_name = bg_image_url.split("fileName=")[-1].strip('"').strip("'")
 
         if image_name in opened_images.keys():
